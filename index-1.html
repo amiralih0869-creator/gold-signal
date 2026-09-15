@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0D0F12" />
+<title>سیگنال طلا</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon-192.png" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D0F12;
+    --bg-warm:#121316;
+    --surface:#16191E;
+    --surface-alt:#1C2028;
+    --border:#262A32;
+    --text:#EDEAE2;
+    --text-dim:#8C8F94;
+    --gold:#C9A24A;
+    --gold-bright:#E3BE5D;
+    --buy:#5B9279;
+    --sell:#B5564A;
+    --hold:#A9884A;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:radial-gradient(circle at 50% -10%, #17191d 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:'Vazirmatn', sans-serif;
+    min-height:100vh;
+    padding-bottom:40px;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .wrap{max-width:480px;margin:0 auto;padding:18px 18px 8px;}
+
+  header{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 22px;}
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand-dot{width:9px;height:9px;border-radius:50%;background:var(--gold);}
+  .brand h1{font-size:15px;font-weight:600;margin:0;letter-spacing:.2px;}
+  .brand span{display:block;font-size:11px;color:var(--text-dim);margin-top:1px;}
+  #settingsBtn{
+    background:var(--surface);border:1px solid var(--border);color:var(--text-dim);
+    width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+  }
+  #settingsBtn svg{width:17px;height:17px;}
+
+  .hero{padding:6px 4px 26px;text-align:center;}
+  .hero .price{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size:44px;
+    direction:ltr;
+    color:var(--gold-bright);
+    line-height:1.1;
+  }
+  .hero .price small{font-size:20px;color:var(--text-dim);font-family:'Vazirmatn',sans-serif;margin-right:4px;}
+  .hero .change{margin-top:8px;font-size:13px;color:var(--text-dim);direction:ltr;display:inline-block;}
+  .hero .change.up{color:var(--buy);}
+  .hero .change.down{color:var(--sell);}
+  .hero .updated{margin-top:10px;font-size:11.5px;color:var(--text-dim);}
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:18px;
+    margin-bottom:14px;
+  }
+
+  .signal-card{
+    border-right:3px solid var(--hold);
+    position:relative;
+    overflow:hidden;
+  }
+  .signal-card.buy{border-right-color:var(--buy);}
+  .signal-card.sell{border-right-color:var(--sell);}
+  .signal-top{display:flex;align-items:center;justify-content:space-between;}
+  .signal-label{font-size:19px;font-weight:600;}
+  .signal-label.buy{color:var(--buy);}
+  .signal-label.sell{color:var(--sell);}
+  .signal-label.hold{color:var(--hold);}
+  .confidence{font-family:'Fraunces',serif;font-size:22px;direction:ltr;color:var(--text);}
+  .confidence-label{font-size:10.5px;color:var(--text-dim);text-align:left;margin-top:1px;}
+  .signal-bar{height:6px;border-radius:4px;background:var(--surface-alt);margin-top:14px;overflow:hidden;position:relative;}
+  .signal-bar .fill{position:absolute;top:0;bottom:0;background:var(--hold);border-radius:4px;transition:width .4s ease;}
+  .signal-bar .fill.buy{background:var(--buy);}
+  .signal-bar .fill.sell{background:var(--sell);}
+  .signal-note{margin-top:12px;font-size:12.5px;color:var(--text-dim);line-height:1.9;}
+  .bias-note{margin-top:10px;font-size:11.5px;color:var(--text-dim);}
+  .bias-note.buy{color:var(--buy);}
+  .bias-note.sell{color:var(--sell);}
+
+  .section-title{font-size:13px;color:var(--text-dim);margin:0 0 12px;font-weight:500;}
+
+  .indicator-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+  .indicator-row:last-child{border-bottom:none;}
+  .indicator-name{flex:0 0 96px;font-size:12.5px;color:var(--text);}
+  .indicator-track{flex:1;height:5px;border-radius:3px;background:var(--surface-alt);position:relative;overflow:hidden;}
+  .indicator-track .mid{position:absolute;top:0;bottom:0;right:50%;width:1px;background:var(--border);}
+  .indicator-track .fill{position:absolute;top:0;bottom:0;border-radius:3px;}
+  .indicator-track .fill.buy{background:var(--buy);}
+  .indicator-track .fill.sell{background:var(--sell);}
+  .indicator-track .fill.pending{background:var(--border);}
+  .indicator-val{flex:0 0 46px;font-size:11px;color:var(--text-dim);direction:ltr;text-align:left;}
+
+  .spark-wrap svg{width:100%;height:140px;display:block;}
+  .spark-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);margin-top:8px;direction:ltr;}
+
+  .disclaimer{font-size:11.5px;color:var(--text-dim);line-height:2;padding:4px 4px 0;}
+
+  /* Settings drawer */
+  #overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:10;}
+  #overlay.show{opacity:1;pointer-events:auto;}
+  #drawer{
+    position:fixed;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;
+    background:var(--surface);border-top:1px solid var(--border);
+    border-radius:20px 20px 0 0;padding:20px 20px 28px;
+    transform:translateY(100%);transition:transform .3s ease;z-index:11;
+    max-height:82vh;overflow-y:auto;
+  }
+  #drawer.show{transform:translateY(0);}
+  .drawer-handle{width:36px;height:4px;background:var(--border);border-radius:3px;margin:0 auto 16px;}
+  .drawer-title{font-size:15px;font-weight:600;margin-bottom:16px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12.5px;color:var(--text-dim);margin-bottom:7px;}
+  select, input[type=text]{
+    width:100%;background:var(--surface-alt);border:1px solid var(--border);color:var(--text);
+    border-radius:10px;padding:11px 12px;font-size:13.5px;font-family:'Vazirmatn',sans-serif;
+  }
+  .field-hint{font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.8;}
+  .btn{
+    width:100%;padding:12px;border-radius:10px;border:none;font-size:13.5px;font-weight:500;
+    font-family:'Vazirmatn',sans-serif;cursor:pointer;
+  }
+  .btn-primary{background:var(--gold);color:#1a1508;margin-top:4px;}
+  .btn-ghost{background:transparent;color:var(--sell);border:1px solid var(--border);margin-top:10px;}
+  .provider-row{display:flex;gap:8px;}
+  .provider-row select{flex:1;}
+  .switch-label{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--text);cursor:pointer;}
+  .switch-label input{width:17px;height:17px;accent-color:var(--gold);}
+
+  .levels-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;}
+  .level-label{font-size:11px;color:var(--text-dim);margin-bottom:7px;}
+  .level-label.tp{color:var(--buy);}
+  .level-label.sl{color:var(--sell);}
+  .level-value{font-family:'Fraunces',serif;font-size:16.5px;direction:ltr;color:var(--text);}
+  .level-value.tp{color:var(--buy);}
+  .level-value.sl{color:var(--sell);}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <div>
+        <h1>سیگنال طلا</h1>
+        <span>XAU/USD · تحلیل تکنیکال</span>
+      </div>
+    </div>
+    <button id="settingsBtn" aria-label="تنظیمات">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </header>
+
+  <div class="hero">
+    <div class="price" id="priceEl"><small>$</small>—</div>
+    <div class="change" id="changeEl">در حال دریافت قیمت...</div>
+    <div class="updated" id="updatedEl"></div>
+  </div>
+
+  <div class="card signal-card hold" id="signalCard">
+    <div class="signal-top">
+      <div>
+        <div class="signal-label hold" id="signalLabel">در حال جمع‌آوری داده</div>
+      </div>
+      <div style="text-align:left;">
+        <div class="confidence" id="confidenceEl">—</div>
+        <div class="confidence-label">قدرت سیگنال</div>
+      </div>
+    </div>
+    <div class="signal-bar"><div class="fill" id="signalFill" style="width:0%;right:50%;"></div></div>
+    <div class="bias-note" id="biasNote"></div>
+    <div class="signal-note" id="signalNote">برای محاسبه‌ی سیگنال، ابتدا باید داده‌ی قیمت به مرور جمع‌آوری شود. این اپ به‌صورت محلی روی گوشی شما تاریخچه می‌سازد؛ هرچه بیشتر باز بماند یا بازش کنید، سیگنال دقیق‌تر می‌شود.</div>
+  </div>
+
+  <div class="card" id="levelsCard" style="display:none;">
+    <p class="section-title">نقاط پیشنهادی معامله</p>
+    <div class="levels-grid">
+      <div class="level-item">
+        <div class="level-label" id="entryLabel">ورود</div>
+        <div class="level-value" id="entryVal">—</div>
+      </div>
+      <div class="level-item">
+        <div class="level-label tp">حد سود</div>
+        <div class="level-value tp" id="tpVal">—</div>
+      </div>
+      <div class="level-item">
+        <div class="level-label sl">حد ضرر</div>
+        <div class="level-value sl" id="slVal">—</div>
+      </div>
+    </div>
+    <div class="signal-note" id="levelsNote"></div>
+  </div>
+
+  <div class="card">
+    <p class="section-title">ترکیب اندیکاتورها</p>
+    <div id="indicatorList"></div>
+  </div>
+
+  <div class="card">
+    <p class="section-title">نمودار قیمت (کندل‌های محلی)</p>
+    <div class="spark-wrap"><svg id="sparkSvg" viewBox="0 0 300 140" preserveAspectRatio="none"></svg></div>
+    <div class="spark-meta"><span id="sparkMin">—</span><span id="sparkCount">۰ نقطه</span><span id="sparkMax">—</span></div>
+  </div>
+
+  <p class="disclaimer">
+    این سیگنال‌ها بر پایه‌ی ترکیب ۸ اندیکاتور تکنیکال (RSI، MACD، روند EMA، بولینگر، استوکاستیک، Williams %R، ROC، CCI) به‌علاوه هم‌راستایی با روند ساعتی، روی داده‌ای هستند که همین اپ به مرور روی گوشی شما جمع می‌کند؛ منبع قیمت یک API عمومی رایگان است. نقاط ورود/سود/ضرر بر اساس نوسان اخیر قیمت محاسبه می‌شوند، نه پیش‌بینی. این ابزار مشاوره‌ی مالی رسمی نیست و هیچ سیگنالی تضمین‌شده نیست — تصمیم نهایی و مسئولیت آن با خودتان است.
+  </p>
+</div>
+
+<div id="overlay"></div>
+<div id="drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-title">تنظیمات</div>
+
+  <div class="field">
+    <label>فاصله‌ی بروزرسانی قیمت</label>
+    <select id="intervalSelect">
+      <option value="5">هر ۵ دقیقه</option>
+      <option value="10">هر ۱۰ دقیقه</option>
+      <option value="15">هر ۱۵ دقیقه</option>
+      <option value="30">هر ۳۰ دقیقه</option>
+      <option value="60">هر ۱ ساعت</option>
+    </select>
+    <div class="field-hint">فاصله‌ی کوتاه‌تر یعنی سیگنال زودتر «فعال» می‌شود، چون اندیکاتورها به چند ده نقطه‌ی داده نیاز دارند.</div>
+  </div>
+
+  <div class="field">
+    <label>منبع قیمت</label>
+    <div class="provider-row">
+      <select id="providerSelect">
+        <option value="public">API عمومی رایگان (بدون کلید)</option>
+        <option value="goldapi">GoldAPI.io (با کلید شخصی)</option>
+        <option value="metalsapi">Metals-API (با کلید شخصی)</option>
+      </select>
+    </div>
+    <div class="field-hint" id="providerHint">پیش‌فرض و برای استفاده‌ی شخصی کافی است؛ نیازی به ثبت‌نام نیست.</div>
+    <div id="apiKeyWrap" style="display:none;margin-top:10px;">
+      <input type="text" id="apiKeyInput" placeholder="کلید API را اینجا بچسبانید" />
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="switch-label">
+      <input type="checkbox" id="notifyCheckbox" />
+      <span>هشدار وقتی سیگنال قوی فعال شد</span>
+    </label>
+    <div class="field-hint">این هشدار فقط وقتی کار می‌کند که اپ باز باشد (پیش‌زمینه یا پس‌زمینه‌ی نزدیک)؛ چون این ابزار سرور ندارد، نمی‌تواند وقتی گوشی کاملاً خاموش/بسته است پوش واقعی بفرستد.</div>
+  </div>
+
+  <button class="btn btn-primary" id="saveSettingsBtn">ذخیره</button>
+  <button class="btn btn-ghost" id="clearHistoryBtn">پاک کردن تاریخچه و شروع دوباره</button>
+</div>
+
+<script>
+/* ---------- storage ---------- */
+const LS_HISTORY = "gs_history";
+const LS_SETTINGS = "gs_settings";
+const MAX_POINTS = 600;
+
+function loadSettings(){
+  try{
+    const s = JSON.parse(localStorage.getItem(LS_SETTINGS));
+    if(s && s.intervalMin) return s;
+  }catch(e){}
+  return { intervalMin: 10, provider: "public", apiKey: "", notify: false };
+}
+function saveSettings(s){ localStorage.setItem(LS_SETTINGS, JSON.stringify(s)); }
+
+function loadHistory(){
+  try{
+    const h = JSON.parse(localStorage.getItem(LS_HISTORY));
+    if(Array.isArray(h)) return h;
+  }catch(e){}
+  return [];
+}
+function saveHistory(h){
+  if(h.length > MAX_POINTS) h = h.slice(h.length - MAX_POINTS);
+  localStorage.setItem(LS_HISTORY, JSON.stringify(h));
+}
+
+let settings = loadSettings();
+let history = loadHistory();
+
+/* ---------- price fetching ---------- */
+async function fetchPublicPrice(){
+  const res = await fetch("https://api.gold-api.com/price/XAU");
+  if(!res.ok) throw new Error("public api failed");
+  const j = await res.json();
+  return j.price;
+}
+async function fetchGoldApiPrice(key){
+  const res = await fetch("https://www.goldapi.io/api/XAU/USD", {
+    headers: { "x-access-token": key, "Content-Type": "application/json" }
+  });
+  if(!res.ok) throw new Error("goldapi failed");
+  const j = await res.json();
+  return j.price;
+}
+async function fetchMetalsApiPrice(key){
+  const res = await fetch(`https://metals-api.com/api/latest?access_key=${encodeURIComponent(key)}&base=USD&symbols=XAU`);
+  if(!res.ok) throw new Error("metals-api failed");
+  const j = await res.json();
+  if(!j.rates || !j.rates.XAU) throw new Error("bad response");
+  return 1 / j.rates.XAU;
+}
+
+async function fetchPrice(){
+  try{
+    if(settings.provider === "goldapi" && settings.apiKey){
+      return await fetchGoldApiPrice(settings.apiKey);
+    }
+    if(settings.provider === "metalsapi" && settings.apiKey){
+      return await fetchMetalsApiPrice(settings.apiKey);
+    }
+    return await fetchPublicPrice();
+  }catch(e){
+    // fall back to the free public source if a configured key fails
+    try{ return await fetchPublicPrice(); }catch(e2){ throw e2; }
+  }
+}
+
+/* ---------- indicators (pure functions over closing-price arrays) ---------- */
+function sma(vals, period){
+  const out = new Array(vals.length).fill(null);
+  let sum = 0;
+  for(let i=0;i<vals.length;i++){
+    sum += vals[i];
+    if(i>=period) sum -= vals[i-period];
+    if(i>=period-1) out[i] = sum/period;
+  }
+  return out;
+}
+function ema(vals, period){
+  const out = new Array(vals.length).fill(null);
+  const k = 2/(period+1);
+  let prev = null;
+  for(let i=0;i<vals.length;i++){
+    if(i === period-1){
+      let s=0; for(let j=0;j<=i;j++) s+=vals[j];
+      prev = s/period; out[i]=prev;
+    } else if(i >= period){
+      prev = vals[i]*k + prev*(1-k); out[i]=prev;
+    }
+  }
+  return out;
+}
+function rsi(vals, period=14){
+  const out = new Array(vals.length).fill(null);
+  if(vals.length < period+1) return out;
+  let gainSum=0, lossSum=0;
+  for(let i=1;i<=period;i++){
+    const d = vals[i]-vals[i-1];
+    if(d>0) gainSum+=d; else lossSum-=d;
+  }
+  let avgGain = gainSum/period, avgLoss = lossSum/period;
+  out[period] = 100 - (100/(1+ (avgLoss===0?100:avgGain/avgLoss)));
+  for(let i=period+1;i<vals.length;i++){
+    const d = vals[i]-vals[i-1];
+    const gain = d>0?d:0, loss = d<0?-d:0;
+    avgGain = (avgGain*(period-1)+gain)/period;
+    avgLoss = (avgLoss*(period-1)+loss)/period;
+    const rs = avgLoss===0 ? 100 : avgGain/avgLoss;
+    out[i] = 100 - (100/(1+rs));
+  }
+  return out;
+}
+function macd(vals, fast=8, slow=17, signalP=9){
+  const emaFast = ema(vals, fast);
+  const emaSlow = ema(vals, slow);
+  const macdLine = vals.map((_,i)=> (emaFast[i]!=null && emaSlow[i]!=null) ? emaFast[i]-emaSlow[i] : null);
+  const macdVals = macdLine.filter(v=>v!=null);
+  const signalRaw = ema(macdVals, signalP);
+  const signalLine = new Array(vals.length).fill(null);
+  let si=0;
+  for(let i=0;i<vals.length;i++){
+    if(macdLine[i]!=null){ signalLine[i] = signalRaw[si]; si++; }
+  }
+  const hist = vals.map((_,i)=> (macdLine[i]!=null && signalLine[i]!=null) ? macdLine[i]-signalLine[i] : null);
+  return { macdLine, signalLine, hist };
+}
+function bollinger(vals, period=20, mult=2){
+  const mid = sma(vals, period);
+  const upper = new Array(vals.length).fill(null);
+  const lower = new Array(vals.length).fill(null);
+  for(let i=0;i<vals.length;i++){
+    if(mid[i]==null) continue;
+    let sq=0;
+    for(let j=i-period+1;j<=i;j++){ sq += Math.pow(vals[j]-mid[i],2); }
+    const sd = Math.sqrt(sq/period);
+    upper[i] = mid[i]+mult*sd;
+    lower[i] = mid[i]-mult*sd;
+  }
+  return { mid, upper, lower };
+}
+function stochastic(vals, period=14){
+  // approximation: no OHLC available, use rolling min/max of closes as proxy for low/high
+  const out = new Array(vals.length).fill(null);
+  for(let i=0;i<vals.length;i++){
+    if(i<period-1) continue;
+    let mn=Infinity, mx=-Infinity;
+    for(let j=i-period+1;j<=i;j++){ if(vals[j]<mn) mn=vals[j]; if(vals[j]>mx) mx=vals[j]; }
+    out[i] = mx===mn ? 50 : ((vals[i]-mn)/(mx-mn))*100;
+  }
+  return out;
+}
+function williamsR(vals, period=14){
+  // approximation: same rolling min/max proxy as stochastic, classic -100..0 scale
+  const out = new Array(vals.length).fill(null);
+  for(let i=0;i<vals.length;i++){
+    if(i<period-1) continue;
+    let mn=Infinity, mx=-Infinity;
+    for(let j=i-period+1;j<=i;j++){ if(vals[j]<mn) mn=vals[j]; if(vals[j]>mx) mx=vals[j]; }
+    out[i] = mx===mn ? -50 : ((mx-vals[i])/(mx-mn))*-100;
+  }
+  return out;
+}
+function roc(vals, period=10){
+  const out = new Array(vals.length).fill(null);
+  for(let i=period;i<vals.length;i++){
+    const base = vals[i-period];
+    out[i] = base===0 ? null : ((vals[i]-base)/base)*100;
+  }
+  return out;
+}
+function cci(vals, period=20){
+  // typical price approximated by close, since only tick prices (no OHLC) are available
+  const out = new Array(vals.length).fill(null);
+  const midArr = sma(vals, period);
+  for(let i=0;i<vals.length;i++){
+    if(midArr[i]==null) continue;
+    let sum=0;
+    for(let j=i-period+1;j<=i;j++){ sum += Math.abs(vals[j]-midArr[i]); }
+    const meanDev = sum/period;
+    out[i] = meanDev===0 ? 0 : (vals[i]-midArr[i])/(0.015*meanDev);
+  }
+  return out;
+}
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
+
+/* higher-timeframe confluence: resample local ticks into hourly closes and compare a fast/slow EMA on that series */
+function higherTimeframeBias(hist){
+  if(hist.length < 10) return null;
+  const buckets = new Map();
+  hist.forEach(p=>{
+    const key = Math.floor(p.t/3600000); // hour bucket
+    buckets.set(key, p.p); // last write in a bucket = that hour's close
+  });
+  const closes = Array.from(buckets.keys()).sort((a,b)=>a-b).map(k=>buckets.get(k));
+  if(closes.length < 8) return null;
+  const fastP = 3, slowP = Math.min(8, closes.length-1);
+  const f = ema(closes, fastP), s = ema(closes, slowP);
+  const lastF = f[f.length-1], lastS = s[s.length-1];
+  if(lastF==null || lastS==null) return null;
+  if(lastF > lastS*1.0008) return 'up';
+  if(lastF < lastS*0.9992) return 'down';
+  return 'flat';
+}
+
+/* ---------- signal engine ---------- */
+function computeSignal(hist){
+  const vals = hist.map(p=>p.p);
+  const n = vals.length;
+  const indicators = []; // {key,name,score(-1..1 or null),display,weight}
+
+  // RSI — mean-reversion
+  const rsiArr = rsi(vals,14);
+  const rsiLast = rsiArr[n-1];
+  indicators.push({
+    key:"rsi", name:"RSI", weight:0.14,
+    ready: n>=15,
+    score: n>=15 ? clamp((50-rsiLast)/50,-1,1) : null,
+    display: n>=15 ? rsiLast.toFixed(0) : "—"
+  });
+
+  // MACD — trend/momentum
+  const m = macd(vals,8,17,9);
+  const histVals = m.hist.filter(v=>v!=null);
+  const macdLast = m.hist[n-1];
+  let macdScore = null;
+  if(macdLast!=null && histVals.length>=5){
+    const scale = histVals.slice(-20).reduce((a,b)=>a+Math.abs(b),0)/Math.min(20,histVals.length) || 1;
+    macdScore = clamp(macdLast/(scale*2), -1, 1);
+  }
+  indicators.push({
+    key:"macd", name:"MACD", weight:0.16,
+    ready: macdScore!=null,
+    score: macdScore,
+    display: macdLast!=null ? macdLast.toFixed(2) : "—"
+  });
+
+  // EMA trend (9 vs 21) — trend
+  const ema9 = ema(vals,9), ema21 = ema(vals,21);
+  let trendScore=null, trendDisplay="—";
+  if(ema9[n-1]!=null && ema21[n-1]!=null){
+    const spread = (ema9[n-1]-ema21[n-1])/ema21[n-1];
+    trendScore = clamp(spread/0.015, -1, 1);
+    trendDisplay = (spread*100).toFixed(2)+"%";
+  }
+  indicators.push({ key:"trend", name:"روند EMA", weight:0.16, ready: trendScore!=null, score: trendScore, display: trendDisplay });
+
+  // Bollinger %B — mean-reversion
+  const bb = bollinger(vals,20,2);
+  let bbScore=null, bbDisplay="—";
+  if(bb.upper[n-1]!=null && bb.lower[n-1]!=null && bb.upper[n-1]!==bb.lower[n-1]){
+    const pctB = (vals[n-1]-bb.lower[n-1])/(bb.upper[n-1]-bb.lower[n-1]);
+    bbScore = clamp((0.5-pctB)*2, -1, 1);
+    bbDisplay = (pctB*100).toFixed(0)+"%";
+  }
+  indicators.push({ key:"bb", name:"بولینگر", weight:0.11, ready: bbScore!=null, score:bbScore, display:bbDisplay });
+
+  // Stochastic — mean-reversion
+  const stoArr = stochastic(vals,14);
+  const stoLast = stoArr[n-1];
+  indicators.push({
+    key:"sto", name:"استوکاستیک", weight:0.09,
+    ready: stoLast!=null,
+    score: stoLast!=null ? clamp((50-stoLast)/50,-1,1) : null,
+    display: stoLast!=null ? stoLast.toFixed(0) : "—"
+  });
+
+  // Williams %R — mean-reversion
+  const wrArr = williamsR(vals,14);
+  const wrLast = wrArr[n-1];
+  indicators.push({
+    key:"wr", name:"Williams %R", weight:0.09,
+    ready: wrLast!=null,
+    score: wrLast!=null ? clamp(-((wrLast+50)/50),-1,1) : null,
+    display: wrLast!=null ? wrLast.toFixed(0) : "—"
+  });
+
+  // ROC — pure momentum (trend-following, not mean-reversion)
+  const rocArr = roc(vals,10);
+  const rocLast = rocArr[n-1];
+  indicators.push({
+    key:"roc", name:"ROC", weight:0.11,
+    ready: rocLast!=null,
+    score: rocLast!=null ? clamp(rocLast/0.8,-1,1) : null,
+    display: rocLast!=null ? rocLast.toFixed(2)+"%" : "—"
+  });
+
+  // CCI — mean-reversion, wider band than Bollinger/RSI
+  const cciArr = cci(vals,20);
+  const cciLast = cciArr[n-1];
+  indicators.push({
+    key:"cci", name:"CCI", weight:0.14,
+    ready: cciLast!=null,
+    score: cciLast!=null ? clamp(-cciLast/200,-1,1) : null,
+    display: cciLast!=null ? cciLast.toFixed(0) : "—"
+  });
+
+  const readyInd = indicators.filter(i=>i.ready && i.score!=null);
+  let finalScore = null;
+  if(readyInd.length>0){
+    const totalW = readyInd.reduce((a,i)=>a+i.weight,0);
+    finalScore = readyInd.reduce((a,i)=>a+i.score*i.weight,0)/totalW;
+  }
+
+  // multi-timeframe confluence: agreement with the hourly-resampled trend nudges confidence up or down
+  const bias = higherTimeframeBias(hist);
+  if(finalScore!=null && bias && bias!=='flat'){
+    if(bias==='up' && finalScore>0) finalScore = clamp(finalScore*1.15,-1,1);
+    else if(bias==='down' && finalScore<0) finalScore = clamp(finalScore*1.15,-1,1);
+    else if(bias==='up' && finalScore<0) finalScore = finalScore*0.85;
+    else if(bias==='down' && finalScore>0) finalScore = finalScore*0.85;
+  }
+
+  let cls = 'hold', label = 'خنثی — بدون سیگنال روشن';
+  if(finalScore!=null && readyInd.length>=3){
+    if(finalScore>=0.5){ cls='buy'; label='سیگنال خرید قوی'; }
+    else if(finalScore>=0.15){ cls='buy'; label='تمایل به خرید'; }
+    else if(finalScore<=-0.5){ cls='sell'; label='سیگنال فروش قوی'; }
+    else if(finalScore<=-0.15){ cls='sell'; label='تمایل به فروش'; }
+  }
+
+  return { indicators, finalScore, readyCount: readyInd.length, cls, label, bias };
+}
+
+/* entry / stop-loss / take-profit, sized off recent price volatility (not a guarantee — just a volatility-based reference) */
+function computeLevels(hist, result){
+  if(result.cls === 'hold') return null;
+  const vals = hist.map(p=>p.p);
+  const n = vals.length;
+  const period = 14;
+  if(n < period+1) return null;
+  let sum = 0;
+  for(let i=n-period;i<n;i++){ sum += Math.abs(vals[i]-vals[i-1]); }
+  const avgMove = sum/period;
+  if(!avgMove || avgMove<=0) return null;
+  const slMult = 3, rr = 2;
+  const slDist = avgMove*slMult;
+  const entry = vals[n-1];
+  let sl, tp;
+  if(result.cls === 'buy'){ sl = entry - slDist; tp = entry + slDist*rr; }
+  else { sl = entry + slDist; tp = entry - slDist*rr; }
+  return { entry, sl, tp, cls: result.cls };
+}
+
+/* ---------- rendering ---------- */
+const fmt = new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+function renderPrice(price, prevPrice){
+  document.getElementById('priceEl').innerHTML = `<small>$</small>${fmt.format(price)}`;
+  const chEl = document.getElementById('changeEl');
+  if(prevPrice!=null && prevPrice!==0){
+    const pct = ((price-prevPrice)/prevPrice)*100;
+    const sign = pct>=0?'+':'';
+    chEl.textContent = `${sign}${pct.toFixed(3)}% نسبت به داده‌ی قبلی`;
+    chEl.className = 'change ' + (pct>=0?'up':'down');
+  } else {
+    chEl.textContent = 'اولین داده‌ی ثبت‌شده';
+    chEl.className = 'change';
+  }
+  document.getElementById('updatedEl').textContent = 'آخرین بروزرسانی: ' + new Date().toLocaleTimeString('fa-IR');
+}
+
+function renderSignal(result){
+  const card = document.getElementById('signalCard');
+  const label = document.getElementById('signalLabel');
+  const conf = document.getElementById('confidenceEl');
+  const fill = document.getElementById('signalFill');
+  const note = document.getElementById('signalNote');
+  const biasEl = document.getElementById('biasNote');
+
+  if(result.finalScore==null || result.readyCount < 3){
+    card.className = 'card signal-card hold';
+    label.className = 'signal-label hold';
+    label.textContent = 'در حال جمع‌آوری داده';
+    conf.textContent = '—';
+    fill.className = 'fill'; fill.style.width='0%'; fill.style.right='50%';
+    note.textContent = `${result.readyCount} از ۸ اندیکاتور فعال شده‌اند. با گذشت زمان و ثبت داده‌ی بیشتر، سیگنال کامل می‌شود.`;
+    biasEl.textContent = '';
+    return;
+  }
+
+  const s = result.finalScore;
+  const cls = result.cls, txt = result.label;
+
+  card.className = 'card signal-card ' + cls;
+  label.className = 'signal-label ' + cls;
+  label.textContent = txt;
+  conf.textContent = Math.round(Math.abs(s)*100) + '%';
+
+  fill.className = 'fill ' + cls;
+  const pct = Math.abs(s)*50;
+  if(s>=0){ fill.style.right='50%'; fill.style.width=pct+'%'; }
+  else { fill.style.right=(50-pct)+'%'; fill.style.width=pct+'%'; }
+
+  note.textContent = `بر اساس ${result.readyCount} از ۸ اندیکاتور فعال (RSI، MACD، روند EMA، بولینگر، استوکاستیک، Williams %R، ROC، CCI). این یک برآورد آماری است، نه توصیه‌ی قطعی.`;
+
+  if(result.bias === 'up'){ biasEl.textContent = 'روند ساعتی هم‌راستا: صعودی ↑'; biasEl.className = 'bias-note buy'; }
+  else if(result.bias === 'down'){ biasEl.textContent = 'روند ساعتی هم‌راستا: نزولی ↓'; biasEl.className = 'bias-note sell'; }
+  else if(result.bias === 'flat'){ biasEl.textContent = 'روند ساعتی: خنثی'; biasEl.className = 'bias-note'; }
+  else { biasEl.textContent = 'روند ساعتی: داده‌ی کافی نیست'; biasEl.className = 'bias-note'; }
+}
+
+function renderLevels(levels){
+  const card = document.getElementById('levelsCard');
+  if(!levels){
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+  document.getElementById('entryLabel').textContent = levels.cls==='buy' ? 'ورود (خرید)' : 'ورود (فروش)';
+  document.getElementById('entryVal').textContent = '$'+fmt.format(levels.entry);
+  document.getElementById('tpVal').textContent = '$'+fmt.format(levels.tp);
+  document.getElementById('slVal').textContent = '$'+fmt.format(levels.sl);
+  document.getElementById('levelsNote').textContent = 'بر اساس نوسان اخیر قیمت محاسبه شده (نسبت ریسک به سود ۱ به ۲)؛ یک راهنمای آماری است، نه تضمین. با تغییر قیمت، این اعداد در بروزرسانی بعدی به‌روز می‌شوند.';
+}
+
+function renderIndicators(indicators){
+  const wrap = document.getElementById('indicatorList');
+  wrap.innerHTML = '';
+  indicators.forEach(ind=>{
+    const row = document.createElement('div');
+    row.className = 'indicator-row';
+    const cls = !ind.ready ? 'pending' : (ind.score>=0 ? 'buy' : 'sell');
+    const widthPct = ind.ready ? Math.abs(ind.score)*50 : 0;
+    const rightPos = !ind.ready ? 50 : (ind.score>=0 ? 50 : 50-widthPct);
+    row.innerHTML = `
+      <div class="indicator-name">${ind.name}</div>
+      <div class="indicator-track">
+        <div class="mid"></div>
+        <div class="fill ${cls}" style="right:${rightPos}%;width:${widthPct}%;"></div>
+      </div>
+      <div class="indicator-val">${ind.ready ? ind.display : 'در حال جمع‌آوری'}</div>
+    `;
+    wrap.appendChild(row);
+  });
+}
+
+/* build real candles from the locally collected ticks (open/high/low/close per time bucket — not synthetic data) */
+function buildCandles(hist, maxCandles){
+  if(hist.length<2) return [];
+  const spanMs = hist[hist.length-1].t - hist[0].t;
+  if(spanMs<=0) return [];
+  const desired = Math.ceil(spanMs / maxCandles);
+  const niceMins = [5,10,15,30,60,120,240,480];
+  let bucketMs = niceMins[niceMins.length-1]*60000;
+  for(const m of niceMins){ if(m*60000 >= desired){ bucketMs = m*60000; break; } }
+  const buckets = new Map();
+  hist.forEach(p=>{
+    const key = Math.floor(p.t/bucketMs);
+    if(!buckets.has(key)) buckets.set(key, { o:p.p, h:p.p, l:p.p, c:p.p, t:key*bucketMs });
+    else {
+      const b = buckets.get(key);
+      if(p.p>b.h) b.h = p.p;
+      if(p.p<b.l) b.l = p.p;
+      b.c = p.p;
+    }
+  });
+  return Array.from(buckets.values()).sort((a,b)=>a.t-b.t).slice(-maxCandles);
+}
+
+function renderSpark(hist){
+  const svg = document.getElementById('sparkSvg');
+  const w=300, h=140, pad=6;
+
+  const candles = buildCandles(hist, 26);
+  if(candles.length < 3){
+    // not enough spread yet for candles — fall back to a simple line of raw ticks
+    const pts = hist.slice(-80);
+    if(pts.length<2){
+      svg.innerHTML = '';
+      document.getElementById('sparkMin').textContent='—';
+      document.getElementById('sparkMax').textContent='—';
+      document.getElementById('sparkCount').textContent = hist.length + ' نقطه';
+      return;
+    }
+    const vals = pts.map(p=>p.p);
+    const min = Math.min(...vals), max = Math.max(...vals);
+    const range = (max-min)||1;
+    const step = (w-pad*2)/(pts.length-1);
+    const coords = vals.map((v,i)=>{
+      const x = pad + i*step;
+      const y = h-pad - ((v-min)/range)*(h-pad*2);
+      return [x,y];
+    });
+    const line = coords.map((c,i)=> (i===0?'M':'L')+c[0].toFixed(1)+','+c[1].toFixed(1)).join(' ');
+    const area = line + ` L${coords[coords.length-1][0].toFixed(1)},${h} L${coords[0][0].toFixed(1)},${h} Z`;
+    svg.innerHTML = `
+      <path d="${area}" fill="rgba(201,162,74,0.12)" stroke="none"></path>
+      <path d="${line}" fill="none" stroke="#C9A24A" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"></path>
+    `;
+    document.getElementById('sparkMin').textContent = '$'+fmt.format(min);
+    document.getElementById('sparkMax').textContent = '$'+fmt.format(max);
+    document.getElementById('sparkCount').textContent = hist.length + ' نقطه';
+    return;
+  }
+
+  const allLows = candles.map(c=>c.l), allHighs = candles.map(c=>c.h);
+  const min = Math.min(...allLows), max = Math.max(...allHighs);
+  const range = (max-min)||1;
+  const slot = (w-pad*2)/candles.length;
+  const bodyW = Math.max(2, slot*0.55);
+  const y = v => h-pad - ((v-min)/range)*(h-pad*2);
+
+  let svgParts = '';
+  candles.forEach((c,i)=>{
+    const cx = pad + slot*i + slot/2;
+    const up = c.c >= c.o;
+    const color = up ? '#5B9279' : '#B5564A';
+    const yh = y(c.h), yl = y(c.l), yo = y(c.o), yc = y(c.c);
+    const bodyTop = Math.min(yo,yc), bodyH = Math.max(1.2, Math.abs(yc-yo));
+    svgParts += `<line x1="${cx.toFixed(1)}" y1="${yh.toFixed(1)}" x2="${cx.toFixed(1)}" y2="${yl.toFixed(1)}" stroke="${color}" stroke-width="1"></line>`;
+    svgParts += `<rect x="${(cx-bodyW/2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bodyW.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}" rx="1"></rect>`;
+  });
+  svg.innerHTML = svgParts;
+  document.getElementById('sparkMin').textContent = '$'+fmt.format(min);
+  document.getElementById('sparkMax').textContent = '$'+fmt.format(max);
+  document.getElementById('sparkCount').textContent = hist.length + ' نقطه';
+}
+
+let lastNotifiedCls = localStorage.getItem('gs_last_notify_cls') || 'hold';
+function maybeNotify(result){
+  if(!settings.notify) return;
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  const isStrong = result.finalScore!=null && Math.abs(result.finalScore) >= 0.5 && (result.cls==='buy' || result.cls==='sell');
+  if(isStrong && result.cls !== lastNotifiedCls){
+    const body = result.cls==='buy' ? 'سیگنال خرید قوی برای طلا فعال شد.' : 'سیگنال فروش قوی برای طلا فعال شد.';
+    try{ new Notification('سیگنال طلا', { body, icon: 'icon-192.png' }); }catch(e){}
+    lastNotifiedCls = result.cls;
+    localStorage.setItem('gs_last_notify_cls', lastNotifiedCls);
+  } else if(!isStrong && lastNotifiedCls !== 'hold'){
+    lastNotifiedCls = 'hold';
+    localStorage.setItem('gs_last_notify_cls', 'hold');
+  }
+}
+
+/* ---------- main loop ---------- */
+async function tick(forceAppend){
+  try{
+    const prevPrice = history.length ? history[history.length-1].p : null;
+    const price = await fetchPrice();
+    const now = Date.now();
+    const last = history[history.length-1];
+    const minGapMs = forceAppend ? 60*1000 : settings.intervalMin*60*1000*0.9;
+    if(!last || (now - last.t) >= minGapMs){
+      history.push({ t: now, p: price });
+      saveHistory(history);
+    }
+    renderPrice(price, prevPrice);
+    const result = computeSignal(history);
+    renderSignal(result);
+    renderIndicators(result.indicators);
+    renderLevels(computeLevels(history, result));
+    renderSpark(history);
+    maybeNotify(result);
+  }catch(e){
+    document.getElementById('changeEl').textContent = 'خطا در دریافت قیمت — دوباره تلاش می‌شود';
+    document.getElementById('changeEl').className = 'change down';
+  }
+}
+
+let timer = null;
+function restartTimer(){
+  if(timer) clearInterval(timer);
+  timer = setInterval(()=>tick(false), settings.intervalMin*60*1000);
+}
+
+/* ---------- settings drawer ---------- */
+const overlay = document.getElementById('overlay');
+const drawer = document.getElementById('drawer');
+function openDrawer(){
+  document.getElementById('intervalSelect').value = String(settings.intervalMin);
+  document.getElementById('providerSelect').value = settings.provider;
+  document.getElementById('apiKeyInput').value = settings.apiKey || '';
+  document.getElementById('notifyCheckbox').checked = !!settings.notify;
+  toggleApiKeyField();
+  overlay.classList.add('show'); drawer.classList.add('show');
+}
+function closeDrawer(){ overlay.classList.remove('show'); drawer.classList.remove('show'); }
+function toggleApiKeyField(){
+  const p = document.getElementById('providerSelect').value;
+  const wrap = document.getElementById('apiKeyWrap');
+  const hint = document.getElementById('providerHint');
+  if(p === 'public'){
+    wrap.style.display='none';
+    hint.textContent = 'پیش‌فرض و برای استفاده‌ی شخصی کافی است؛ نیازی به ثبت‌نام نیست.';
+  } else {
+    wrap.style.display='block';
+    hint.textContent = p==='goldapi' ? 'کلید رایگان از goldapi.io بگیرید (ثبت‌نام رایگان).' : 'کلید رایگان از metals-api.com بگیرید (ثبت‌نام رایگان).';
+  }
+}
+
+document.getElementById('settingsBtn').addEventListener('click', openDrawer);
+overlay.addEventListener('click', closeDrawer);
+document.getElementById('providerSelect').addEventListener('change', toggleApiKeyField);
+document.getElementById('saveSettingsBtn').addEventListener('click', ()=>{
+  settings.intervalMin = parseInt(document.getElementById('intervalSelect').value,10);
+  settings.provider = document.getElementById('providerSelect').value;
+  settings.apiKey = document.getElementById('apiKeyInput').value.trim();
+  settings.notify = document.getElementById('notifyCheckbox').checked;
+  saveSettings(settings);
+  if(settings.notify && 'Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission();
+  }
+  restartTimer();
+  closeDrawer();
+  tick(true);
+});
+document.getElementById('clearHistoryBtn').addEventListener('click', ()=>{
+  if(confirm('تاریخچه‌ی قیمت پاک شود و اپ از نو شروع کند؟')){
+    history = [];
+    saveHistory(history);
+    closeDrawer();
+    tick(true);
+  }
+});
+
+/* ---------- init ---------- */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+renderSpark(history);
+tick(true);
+restartTimer();
+document.addEventListener('visibilitychange', ()=>{
+  if(document.visibilityState === 'visible') tick(false);
+});
+</script>
+</body>
+</html>
