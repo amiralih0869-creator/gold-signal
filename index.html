@@ -304,10 +304,22 @@ let history = loadHistory();
 
 /* ---------- price fetching ---------- */
 async function fetchPublicPrice(){
-  const res = await fetch("https://api.gold-api.com/price/XAU");
-  if(!res.ok) throw new Error("public api failed");
-  const j = await res.json();
-  return j.price;
+  // try a direct browser call first
+  try{
+    const res = await fetch("https://api.gold-api.com/price/XAU");
+    if(!res.ok) throw new Error("direct api http "+res.status);
+    const j = await res.json();
+    if(typeof j.price !== "number") throw new Error("unexpected response shape");
+    return j.price;
+  }catch(directErr){
+    // some mobile browsers block the direct call (CORS/network quirks) — retry through a CORS-friendly relay
+    const res = await fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://api.gold-api.com/price/XAU"));
+    if(!res.ok) throw new Error("proxy http "+res.status);
+    const wrapper = await res.json();
+    const j = JSON.parse(wrapper.contents);
+    if(typeof j.price !== "number") throw new Error("unexpected proxied response shape");
+    return j.price;
+  }
 }
 async function fetchGoldApiPrice(key){
   const res = await fetch("https://www.goldapi.io/api/XAU/USD", {
@@ -827,7 +839,7 @@ async function tick(forceAppend){
     renderSpark(history);
     maybeNotify(result);
   }catch(e){
-    document.getElementById('changeEl').textContent = 'خطا در دریافت قیمت — دوباره تلاش می‌شود';
+    document.getElementById('changeEl').textContent = 'خطا در دریافت قیمت (' + (e && e.message ? e.message : 'نامشخص') + ') — دوباره تلاش می‌شود';
     document.getElementById('changeEl').className = 'change down';
   }
 }
