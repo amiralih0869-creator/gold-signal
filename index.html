@@ -224,7 +224,7 @@
   </div>
 
   <p class="disclaimer">
-    این سیگنال‌ها بر پایه‌ی ترکیب ۸ اندیکاتور تکنیکال (RSI، MACD، روند EMA، بولینگر، استوکاستیک، Williams %R، ROC، CCI) به‌علاوه هم‌راستایی با روند ساعتی، روی داده‌ای هستند که همین اپ به مرور روی گوشی شما جمع می‌کند؛ منبع قیمت یک API عمومی رایگان است. نقاط ورود/سود/ضرر بر اساس نوسان اخیر قیمت محاسبه می‌شوند، نه پیش‌بینی. این ابزار مشاوره‌ی مالی رسمی نیست و هیچ سیگنالی تضمین‌شده نیست — تصمیم نهایی و مسئولیت آن با خودتان است.
+    این سیگنال‌ها بر پایه‌ی ترکیب ۹ اندیکاتور تکنیکال (RSI، MACD، روند EMA، بولینگر، استوکاستیک، Williams %R، ROC، CCI، ساختار کندلی BOS/CHoCH) به‌علاوه هم‌راستایی با روند ساعتی، روی داده‌ای هستند که همین اپ به مرور روی گوشی شما جمع می‌کند؛ منبع قیمت یک API عمومی رایگان است. نقاط ورود/سود/ضرر بر اساس نوسان اخیر قیمت محاسبه می‌شوند، نه پیش‌بینی. این ابزار مشاوره‌ی مالی رسمی نیست و هیچ سیگنالی تضمین‌شده نیست — تصمیم نهایی و مسئولیت آن با خودتان است.
   </p>
 </div>
 
@@ -489,6 +489,44 @@ function higherTimeframeBias(hist){
   return 'flat';
 }
 
+/* market structure (BOS/CHoCH): find recent swing pivots from our own candles and read
+   whether price is making higher-highs/higher-lows (bullish structure), lower-highs/lower-lows
+   (bearish), or just broke out through a recent swing level */
+function findPivots(candles, window){
+  const highs=[], lows=[];
+  for(let i=window;i<candles.length-window;i++){
+    let isHigh=true, isLow=true;
+    for(let j=i-window;j<=i+window;j++){
+      if(j===i) continue;
+      if(candles[j].h >= candles[i].h) isHigh=false;
+      if(candles[j].l <= candles[i].l) isLow=false;
+    }
+    if(isHigh) highs.push({ i, v: candles[i].h });
+    if(isLow) lows.push({ i, v: candles[i].l });
+  }
+  return { highs, lows };
+}
+function marketStructureScore(hist){
+  const candles = buildCandles(hist, 40);
+  if(candles.length < 15) return { ready:false, score:null, display:'—' };
+  const { highs, lows } = findPivots(candles, 2);
+  if(highs.length < 2 || lows.length < 2) return { ready:false, score:null, display:'—' };
+
+  const H1 = highs[highs.length-2].v, H2 = highs[highs.length-1].v;
+  const L1 = lows[lows.length-2].v,  L2 = lows[lows.length-1].v;
+
+  let score = 0, label = 'خنثی';
+  if(H2>H1 && L2>L1){ score = 0.7; label = 'ساختار صعودی'; }
+  else if(H2<H1 && L2<L1){ score = -0.7; label = 'ساختار نزولی'; }
+  else { score = 0; label = 'ساختار درحال گذار'; }
+
+  const lastClose = candles[candles.length-1].c;
+  if(lastClose > H2){ score = clamp(score+0.3,-1,1); label = 'شکست ساختار (صعودی)'; }
+  else if(lastClose < L2){ score = clamp(score-0.3,-1,1); label = 'شکست ساختار (نزولی)'; }
+
+  return { ready:true, score, display:label };
+}
+
 /* ---------- signal engine ---------- */
 function computeSignal(hist){
   const vals = hist.map(p=>p.p);
@@ -499,7 +537,7 @@ function computeSignal(hist){
   const rsiArr = rsi(vals,14);
   const rsiLast = rsiArr[n-1];
   indicators.push({
-    key:"rsi", name:"RSI", weight:0.14,
+    key:"rsi", name:"RSI", weight:0.12,
     ready: n>=15,
     score: n>=15 ? clamp((50-rsiLast)/50,-1,1) : null,
     display: n>=15 ? rsiLast.toFixed(0) : "—"
@@ -515,7 +553,7 @@ function computeSignal(hist){
     macdScore = clamp(macdLast/(scale*2), -1, 1);
   }
   indicators.push({
-    key:"macd", name:"MACD", weight:0.16,
+    key:"macd", name:"MACD", weight:0.14,
     ready: macdScore!=null,
     score: macdScore,
     display: macdLast!=null ? macdLast.toFixed(2) : "—"
@@ -529,7 +567,7 @@ function computeSignal(hist){
     trendScore = clamp(spread/0.015, -1, 1);
     trendDisplay = (spread*100).toFixed(2)+"%";
   }
-  indicators.push({ key:"trend", name:"روند EMA", weight:0.16, ready: trendScore!=null, score: trendScore, display: trendDisplay });
+  indicators.push({ key:"trend", name:"روند EMA", weight:0.14, ready: trendScore!=null, score: trendScore, display: trendDisplay });
 
   // Bollinger %B — mean-reversion
   const bb = bollinger(vals,20,2);
@@ -539,13 +577,13 @@ function computeSignal(hist){
     bbScore = clamp((0.5-pctB)*2, -1, 1);
     bbDisplay = (pctB*100).toFixed(0)+"%";
   }
-  indicators.push({ key:"bb", name:"بولینگر", weight:0.11, ready: bbScore!=null, score:bbScore, display:bbDisplay });
+  indicators.push({ key:"bb", name:"بولینگر", weight:0.10, ready: bbScore!=null, score:bbScore, display:bbDisplay });
 
   // Stochastic — mean-reversion
   const stoArr = stochastic(vals,14);
   const stoLast = stoArr[n-1];
   indicators.push({
-    key:"sto", name:"استوکاستیک", weight:0.09,
+    key:"sto", name:"استوکاستیک", weight:0.08,
     ready: stoLast!=null,
     score: stoLast!=null ? clamp((50-stoLast)/50,-1,1) : null,
     display: stoLast!=null ? stoLast.toFixed(0) : "—"
@@ -555,7 +593,7 @@ function computeSignal(hist){
   const wrArr = williamsR(vals,14);
   const wrLast = wrArr[n-1];
   indicators.push({
-    key:"wr", name:"Williams %R", weight:0.09,
+    key:"wr", name:"Williams %R", weight:0.08,
     ready: wrLast!=null,
     score: wrLast!=null ? clamp(-((wrLast+50)/50),-1,1) : null,
     display: wrLast!=null ? wrLast.toFixed(0) : "—"
@@ -565,7 +603,7 @@ function computeSignal(hist){
   const rocArr = roc(vals,10);
   const rocLast = rocArr[n-1];
   indicators.push({
-    key:"roc", name:"ROC", weight:0.11,
+    key:"roc", name:"ROC", weight:0.10,
     ready: rocLast!=null,
     score: rocLast!=null ? clamp(rocLast/0.8,-1,1) : null,
     display: rocLast!=null ? rocLast.toFixed(2)+"%" : "—"
@@ -575,10 +613,19 @@ function computeSignal(hist){
   const cciArr = cci(vals,20);
   const cciLast = cciArr[n-1];
   indicators.push({
-    key:"cci", name:"CCI", weight:0.14,
+    key:"cci", name:"CCI", weight:0.12,
     ready: cciLast!=null,
     score: cciLast!=null ? clamp(-cciLast/200,-1,1) : null,
     display: cciLast!=null ? cciLast.toFixed(0) : "—"
+  });
+
+  // Market structure (BOS/CHoCH) — swing-pivot break of structure, built from our own local candles
+  const structure = marketStructureScore(hist);
+  indicators.push({
+    key:"structure", name:"ساختار کندلی", weight:0.12,
+    ready: structure.ready,
+    score: structure.score,
+    display: structure.display
   });
 
   const readyInd = indicators.filter(i=>i.ready && i.score!=null);
@@ -660,7 +707,7 @@ function renderSignal(result){
     label.textContent = 'در حال جمع‌آوری داده';
     conf.textContent = '—';
     fill.className = 'fill'; fill.style.width='0%'; fill.style.right='50%';
-    note.textContent = `${result.readyCount} از ۸ اندیکاتور فعال شده‌اند. با گذشت زمان و ثبت داده‌ی بیشتر، سیگنال کامل می‌شود.`;
+    note.textContent = `${result.readyCount} از ۹ اندیکاتور فعال شده‌اند. با گذشت زمان و ثبت داده‌ی بیشتر، سیگنال کامل می‌شود.`;
     biasEl.textContent = '';
     return;
   }
@@ -678,7 +725,7 @@ function renderSignal(result){
   if(s>=0){ fill.style.right='50%'; fill.style.width=pct+'%'; }
   else { fill.style.right=(50-pct)+'%'; fill.style.width=pct+'%'; }
 
-  note.textContent = `بر اساس ${result.readyCount} از ۸ اندیکاتور فعال (RSI، MACD، روند EMA، بولینگر، استوکاستیک، Williams %R، ROC، CCI). این یک برآورد آماری است، نه توصیه‌ی قطعی.`;
+  note.textContent = `بر اساس ${result.readyCount} از ۹ اندیکاتور فعال (RSI، MACD، روند EMA، بولینگر، استوکاستیک، Williams %R، ROC، CCI، ساختار کندلی). این یک برآورد آماری است، نه توصیه‌ی قطعی.`;
 
   if(result.bias === 'up'){ biasEl.textContent = 'روند ساعتی هم‌راستا: صعودی ↑'; biasEl.className = 'bias-note buy'; }
   else if(result.bias === 'down'){ biasEl.textContent = 'روند ساعتی هم‌راستا: نزولی ↓'; biasEl.className = 'bias-note sell'; }
